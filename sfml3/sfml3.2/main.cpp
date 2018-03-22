@@ -7,18 +7,10 @@
 // глазного яблока shape
 // позиция глазного яблока Vector2f
 // поворот глаза int
-struct EyeLeft
+struct Eye
 {
-    sf::ConvexShape eyeLeft;
-    sf::ConvexShape appleLeft;
-    sf::Vector2f position;
-    float rotation = 0;
-};
-
-struct EyeRight
-{
-    sf::ConvexShape eyeRight;
-    sf::ConvexShape appleRight;
+    sf::ConvexShape eye;
+    sf::ConvexShape apple;
     sf::Vector2f position;
     float rotation = 0;
 };
@@ -31,78 +23,63 @@ sf::Vector2f toEuclidean(float radiusX, float radiusY, float angle)
         radiusY * sin(angle)};
 }
 
-// обновляем позиция левого глаза
-void updateEyeLeftElements(EyeLeft &EyeLeft)
+// обновляем позиция глаза
+void updateEyeElements(Eye &Eye)
 {
-    EyeLeft.eyeLeft.setPosition(EyeLeft.position);
-    const sf::Vector2f appleLeft0ffset = toEuclidean(25, 55, EyeLeft.rotation);
-    EyeLeft.appleLeft.setPosition(EyeLeft.position + appleLeft0ffset);
+    Eye.eye.setPosition(Eye.position);
+    const sf::Vector2f apple0ffset = toEuclidean(25, 55, Eye.rotation);
+    Eye.apple.setPosition(Eye.position + apple0ffset);
 }
 
-// обновляем позиция правого глаза
-void updateEyeRightElements(EyeRight &EyeRight)
+//  рисуем глаз
+void initdrawEye(Eye &Eye)
 {
-    EyeRight.eyeRight.setPosition(EyeRight.position);
-    const sf::Vector2f appleRight0ffset = toEuclidean(25, 55, EyeRight.rotation);
-    EyeRight.appleRight.setPosition(EyeRight.position + appleRight0ffset);
+    const sf::Vector2f eyeRadius = {40.f, 80.f};
+    const int pointCount = 100;
+
+    Eye.eye.setFillColor(sf::Color(0xFF, 0xFF, 0xFF));
+    Eye.eye.setPointCount(pointCount);
+    for (int pointI = 0; pointI < pointCount; ++pointI)
+    {
+        float angle = float(2 * M_PI * pointI) / float(pointCount);
+        sf::Vector2f point = {
+            eyeRadius.x * std::sin(angle),
+            eyeRadius.y * std::cos(angle)};
+        Eye.eye.setPoint(pointI, point);
+    }
+}
+
+//рисуем глазное яблоко
+void initdrawApple(Eye &Eye)
+{
+    const sf::Vector2f appleRadius = {10.f, 20.f};
+    const int pointCount = 100;
+    Eye.apple.setFillColor(sf::Color(0, 0, 0));
+    Eye.apple.setPointCount(pointCount);
+    for (int pointI = 0; pointI < pointCount; ++pointI)
+    {
+        float angle = float(2 * M_PI * pointI) / float(pointCount);
+        sf::Vector2f point = {
+            appleRadius.x * std::sin(angle),
+            appleRadius.y * std::cos(angle)};
+        Eye.apple.setPoint(pointI, point);
+    }
 }
 
 // инициализируем глаза
-void initEyes(EyeLeft &EyeLeft, EyeRight &EyeRight)
+void initEyes(Eye &EyeLeft, Eye &EyeRight)
 {
-    const sf::Vector2f eyeRadius = {40.f, 80.f};
-    const sf::Vector2f appleRadius = {10.f, 20.f};
-    const int pointCount = 100;
     EyeLeft.position = {350, 300};
     EyeRight.position = {450, 300};
 
-    //  рисуем левый глаз
-    EyeLeft.eyeLeft.setFillColor(sf::Color(0xFF, 0xFF, 0xFF));
-    EyeLeft.eyeLeft.setPointCount(pointCount);
-    for (int pointI = 0; pointI < pointCount; ++pointI)
-    {
-        float angle = float(2 * M_PI * pointI) / float(pointCount);
-        sf::Vector2f point = {
-            eyeRadius.x * std::sin(angle),
-            eyeRadius.y * std::cos(angle)};
-        EyeLeft.eyeLeft.setPoint(pointI, point);
-    }
+    initdrawEye(EyeLeft);
+    initdrawEye(EyeRight);
 
-    EyeLeft.appleLeft.setFillColor(sf::Color(0, 0, 0));
-    EyeLeft.appleLeft.setPointCount(pointCount);
-    for (int pointI = 0; pointI < pointCount; ++pointI)
-    {
-        float angle = float(2 * M_PI * pointI) / float(pointCount);
-        sf::Vector2f point = {
-            appleRadius.x * std::sin(angle),
-            appleRadius.y * std::cos(angle)};
-        EyeLeft.appleLeft.setPoint(pointI, point);
-    }
-    //  рисуем правый глаз
-    EyeRight.eyeRight.setFillColor(sf::Color(0xFF, 0xFF, 0xFF));
-    EyeRight.eyeRight.setPointCount(pointCount);
-    for (int pointI = 0; pointI < pointCount; ++pointI)
-    {
-        float angle = float(2 * M_PI * pointI) / float(pointCount);
-        sf::Vector2f point = {
-            eyeRadius.x * std::sin(angle),
-            eyeRadius.y * std::cos(angle)};
-        EyeRight.eyeRight.setPoint(pointI, point);
-    }
+    initdrawApple(EyeLeft);
+    initdrawApple(EyeRight);
 
-    EyeRight.appleRight.setFillColor(sf::Color(0, 0, 0));
-    EyeRight.appleRight.setPointCount(pointCount);
-    for (int pointI = 0; pointI < pointCount; ++pointI)
-    {
-        float angle = float(2 * M_PI * pointI) / float(pointCount);
-        sf::Vector2f point = {
-            appleRadius.x * std::sin(angle),
-            appleRadius.y * std::cos(angle)};
-        EyeRight.appleRight.setPoint(pointI, point);
-    }
-
-    updateEyeLeftElements(EyeLeft);
-    updateEyeRightElements(EyeRight);
+    updateEyeElements(EyeLeft);
+    updateEyeElements(EyeRight);
 }
 
 // из 04 задания
@@ -133,25 +110,29 @@ void pollEvents(sf::RenderWindow &window, sf::Vector2f &mousePosition)
 }
 
 // обновляем кадр и вызываем функции обновления глаз
-void update(const sf::Vector2f &mousePosition, EyeLeft &EyeLeft, EyeRight &EyeRight)
+void update(const sf::Vector2f &mousePosition, Eye &EyeLeft, Eye &EyeRight)
 {
     const sf::Vector2f delta1 = mousePosition - EyeLeft.position;
     EyeLeft.rotation = atan2(delta1.y, delta1.x);
-    updateEyeLeftElements(EyeLeft);
+    updateEyeElements(EyeLeft);
 
     const sf::Vector2f delta2 = mousePosition - EyeRight.position;
     EyeRight.rotation = atan2(delta2.y, delta2.x);
-    updateEyeRightElements(EyeRight);
+    updateEyeElements(EyeRight);
+}
+
+void drawEye(sf::RenderWindow &window, Eye &Eye)
+{
+    window.draw(Eye.eye);
+    window.draw(Eye.apple);
 }
 
 // перерисовываем кадр
-void redrawFrame(sf::RenderWindow &window, EyeLeft &EyeLeft, EyeRight &EyeRight)
+void redrawFrame(sf::RenderWindow &window, Eye &EyeLeft, Eye &EyeRight)
 {
     window.clear();
-    window.draw(EyeLeft.eyeLeft);
-    window.draw(EyeLeft.appleLeft);
-    window.draw(EyeRight.eyeRight);
-    window.draw(EyeRight.appleRight);
+    drawEye(window, EyeLeft);
+    drawEye(window, EyeRight);
     window.display();
 }
 
@@ -166,8 +147,8 @@ int main()
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
         "Eyes follow the cursor", sf::Style::Default, settings);
 
-    EyeLeft EyeLeft;
-    EyeRight EyeRight;
+    Eye EyeLeft;
+    Eye EyeRight;
     initEyes(EyeLeft, EyeRight);
     sf::Vector2f mousePosition;
 
